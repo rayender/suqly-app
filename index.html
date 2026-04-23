@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<title>Suqly — Deals & Discounts UAE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;500;600;700&family=Noto+Sans+Display:wght@700;800;900&family=Noto+Sans+Arabic:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:'Noto Sans',sans-serif;background:var(--bg);color:var(--dark);overscroll-behavior:none}
+button,input,select,textarea{font-family:inherit;border:none;background:none;outline:none}
+button{cursor:pointer}
+img{max-width:100%;display:block}
+svg{display:block;flex-shrink:0}
+
+:root{
+  --red:#E5001D; --red-dk:#B0001A; --red-bg:#FFF2F4; --red-bdr:#FFD0D8;
+  --yel:#FFD000; --yel-dk:#C8A000; --yel-bg:#FFFBE6; --yel-bdr:#FFE87A;
+  --org:#FF6200;
+  --grn:#007832; --grn-bg:#EDFAF3; --grn-bdr:#A8E0C0;
+  --blu:#1448B0; --blu-bg:#EEF3FF; --blu-bdr:#BDD0FF;
+  --pur:#6520B0; --pur-bg:#F4EFFF; --pur-bdr:#D0B8FF;
+  --dark:#1A1A1A; --g8:#444; --g6:#777; --g4:#AAA; --g2:#DDD; --g1:#F2F2F2;
+  --white:#FFF; --bg:#F0F0F0; --card:#FFF; --border:#E4E4E4; --hdr:#1A1A1A;
+  --grad:linear-gradient(130deg,#E5001D,#FF6200);
+  --grad-yel:linear-gradient(130deg,#FFD000,#FF8800);
+  --grad-tick:linear-gradient(100deg,#1A1A1A 0%,#C02000 45%,#FF5500 100%);
+  --r:14px;
+}
+
+/* ── ICONS ── */
+svg{display:inline-block;vertical-align:middle}
+
+/* ── SHELL ── */
+#app{max-width:480px;margin:0 auto;min-height:100vh;background:var(--bg);padding-bottom:84px}
+
+/* ── HEADER ── */
+.hdr{position:sticky;top:0;z-index:80;background:var(--hdr);padding:13px 17px 12px;box-shadow:0 2px 16px rgba(0,0,0,.35);direction:ltr}
+.hdr-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
+.logo{display:flex;align-items:center;gap:9px}
+.logo-icon{width:34px;height:34px;border-radius:9px;background:var(--red);display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:7px 7px 7px 8px;gap:4px;position:relative;flex-shrink:0;box-shadow:0 2px 8px rgba(229,0,29,.45)}
+.logo-bar{background:#fff;border-radius:2px;height:4px}
+.logo-dot{position:absolute;bottom:6px;right:6px;width:6px;height:6px;border-radius:50%;background:var(--yel)}
+.logo-wordmark{display:flex;align-items:baseline;gap:0}
+.logo-name{font-family:'Noto Sans Display',sans-serif;font-weight:900;font-size:21px;color:#fff;letter-spacing:-.5px;line-height:1}
+.logo-ext{font-family:'Noto Sans',sans-serif;font-weight:400;font-size:13px;color:#666;letter-spacing:0;margin-left:2px}
+.city-btn{display:flex;align-items:center;gap:6px;background:#2C2C2C;border:1px solid #3C3C3C;border-radius:20px;padding:5px 10px 5px 9px;color:#CCC;font-size:12px;font-weight:600;cursor:pointer;transition:.18s}
+.city-btn:active{opacity:.7}
+.city-pip{width:7px;height:7px;border-radius:50%;background:var(--yel);flex-shrink:0}
+.srch-wrap{position:relative}
+.srch{width:100%;background:#2C2C2C;border:1.5px solid #3C3C3C;border-radius:10px;padding:9px 14px 9px 38px;color:#fff;font-size:13.5px;transition:.2s}
+.srch::placeholder{color:#5C5C5C}
+.srch:focus{border-color:var(--yel);background:#262626}
+.srch-ico{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:#5C5C5C;display:flex;pointer-events:none}
+
+/* ── TICKER (gradient like screenshot) ── */
+.ticker{background:var(--grad-tick);padding:9px 16px;display:flex;align-items:center;gap:9px}
+.ticker-ico{display:flex;flex-shrink:0;filter:drop-shadow(0 0 4px rgba(255,160,80,.5))}
+.ticker-text{font-size:12px;font-weight:600;color:#fff;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.1px}
+.ticker-text.anim{animation:tickIn .35s ease}
+@keyframes tickIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.ticker-new{background:#fff;color:var(--red);font-size:9.5px;font-weight:800;letter-spacing:.8px;padding:3px 9px;border-radius:5px;flex-shrink:0;text-transform:uppercase}
+
+/* ── POPUP AD ── */
+#popup-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
+.popup-card{background:var(--card);border-radius:20px;overflow:hidden;width:100%;max-width:400px;position:relative;animation:popIn .32s cubic-bezier(.34,1.56,.64,1)}
+@keyframes popIn{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+.popup-top{height:190px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.popup-top-bg{position:absolute;inset:0}
+.popup-top-content{position:relative;z-index:1;text-align:center;padding:20px}
+.popup-disc-circle{width:90px;height:90px;background:rgba(255,255,255,.15);border:3px solid rgba(255,255,255,.4);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto 10px;backdrop-filter:blur(4px)}
+.popup-disc-pct{font-family:'Noto Sans Display',sans-serif;font-weight:900;font-size:28px;line-height:1;color:#fff}
+.popup-disc-off{font-size:11px;font-weight:700;color:rgba(255,255,255,.8);letter-spacing:1px;text-transform:uppercase}
+.popup-store-name{font-family:'Noto Sans Display',sans-serif;font-weight:800;font-size:14px;color:#fff;letter-spacing:.5px;text-transform:uppercase;opacity:.85}
+.popup-body{padding:18px 20px 20px}
+.popup-eyebrow{font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--red);margin-bottom:6px;display:flex;align-items:center;gap:5px}
+.popup-title{font-family:'Noto Sans Display',sans-serif;font-weight:900;font-size:18px;color:var(--dark);margin-bottom:5px;line-height:1.2}
+.popup-sub{font-size:12.5px;color:var(--g6);margin-bottom:15px;line-height:1.5}
+.popup-meta{display:flex;gap:8px;margin-bottom:15px;flex-wrap:wrap}
+.popup-tag{font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;display:inline-flex;align-items:center;gap:4px}
+.popup-cta{display:block;text-align:center;background:var(--grad);color:#fff;font-size:14px;font-weight:700;padding:12px;border-radius:10px;text-decoration:none}
+.popup-close{position:absolute;top:10px;right:10px;width:30px;height:30px;background:rgba(0,0,0,.45);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;border:1.5px solid rgba(255,255,255,.2);z-index:10}
+
+/* ── HERO ROW ── */
+.hero-row{display:flex;gap:11px;overflow-x:auto;padding:16px 17px 6px;scrollbar-width:none}
+.hero-row::-webkit-scrollbar{display:none}
+.h-card{min-width:272px;height:148px;border-radius:var(--r);overflow:hidden;position:relative;flex-shrink:0;cursor:pointer;transition:transform .2s}
+.h-card:active{transform:scale(.97)}
+.h-bg{position:absolute;inset:0}
+.h-ov{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.7),rgba(0,0,0,.05) 65%)}
+.h-cnt{position:absolute;inset:0;padding:14px;display:flex;flex-direction:column;justify-content:flex-end}
+.h-eyebrow{font-size:9px;font-weight:700;color:rgba(255,255,255,.65);letter-spacing:1.8px;text-transform:uppercase;margin-bottom:4px;display:flex;align-items:center;gap:4px}
+.h-title{font-family:'Noto Sans Display',sans-serif;font-weight:900;font-size:17px;color:#fff;line-height:1.15}
+.h-sub{font-size:11px;color:rgba(255,255,255,.65);margin-top:4px;display:flex;align-items:center;gap:4px}
+/* White circle discount badge — like the screenshot */
+.h-disc{position:absolute;top:12px;right:12px;background:#fff;border-radius:50%;width:54px;height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 3px 12px rgba(0,0,0,.25)}
+.h-pct{font-family:'Noto Sans Display',sans-serif;font-weight:900;font-size:17px;line-height:1;color:var(--red)}
+.h-off{font-size:8px;font-weight:700;color:var(--g6);letter-spacing:.5px;text-transform:uppercase}
+.h-subtitle{font-size:11.5px;color:rgba(255,255,255,.82);margin-top:4px;margin-bottom:5px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.h-city{font-size:10.5px;font-weight:600;color:rgba(255,255,255,.95);display:flex;align-items:center;gap:4px;text-shadow:0 1px 4px rgba(0,0,0,.5)}
+/* RTL support */
+[dir="rtl"]{font-family:'Noto Sans Arabic','Noto Sans',sans-serif}
+[dir="rtl"] .d-top,[dir="rtl"] .d-tags{direction:rtl}
+[dir="rtl"] .bnav .nv-lbl{font-family:'Noto Sans Arabic',sans-serif}
+[dir="rtl"] .d-badge{margin-left:0;margin-right:auto}
+[dir="rtl"] .cats,[dir="rtl"] .flt-row,[dir="rtl"] .hero-row{direction:rtl}
+/* Lang toggle */
+.lang-toggle{display:flex;align-items:center;background:#2C2C2C;border:1px solid #3C3C3C;border-radius:20px;overflow:hidden;flex-shrink:0}
+.lang-opt{padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;color:#666;transition:.18s;letter-spacing:.3px}
+.lang-opt.on{background:var(--red);color:#fff}
+
+/* ── SECTION HEAD ── */
+.sec-hd{display:flex;align-items:center;justify-content:space-between;padding:18px 17px 8px}
+.sec-t{font-family:'Noto Sans Display',sans-serif;font-weight:800;font-size:15px;color:var(--dark)}
+.sec-c{font-size:12px;color:var(--g4);font-weight:500}
+
+/* ── CATEGORY CHIPS ── */
+.cats{display:flex;gap:9px;overflow-x:auto;padding:0 17px 12px;scrollbar-width:none}
+.cats::-webkit-scrollbar{display:none}
+.c-chip{display:flex;flex-direction:column;align-items:center;gap:5px;flex-shrink:0;cursor:pointer;transition:transform .18s;-webkit-tap-highlight-color:transparent}
+.c-chip:active{transform:scale(.92)}
+.c-ico{width:52px;height:52px;border-radius:14px;background:var(--card);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;transition:.18s;color:var(--g6)}
+.c-chip.on .c-ico{background:linear-gradient(135deg,var(--red),var(--org));border-color:var(--red);color:#fff;box-shadow:0 4px 14px rgba(229,0,29,.35)}
+.c-lbl{font-size:10px;font-weight:600;color:var(--g6);text-align:center;max-width:58px;line-height:1.2}
+.c-chip.on .c-lbl{color:var(--red);font-weight:700}
+
+/* ── CAT SPONSOR STRIP (reference image style) ── */
+.cat-ads{display:flex;gap:9px;overflow-x:auto;padding:0 17px 14px;scrollbar-width:none}
+.cat-ads::-webkit-scrollbar{display:none}
+.cat-ad{flex-shrink:0;border-radius:10px;overflow:hidden;cursor:pointer;transition:transform .18s;position:relative}
+.cat-ad:active{transform:scale(.96)}
+.cat-ad-bg{position:absolute;inset:0}
+.cat-ad-inner{position:relative;z-index:1;padding:9px 13px;display:flex;align-items:center;gap:8px;min-height:46px}
+.cat-ad-ico{width:28px;height:28px;border-radius:7px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cat-ad-name{font-family:'Noto Sans Display',sans-serif;font-weight:700;font-size:12.5px;color:#fff;white-space:nowrap}
+.cat-ad-sub{font-size:10px;color:rgba(255,255,255,.75);white-space:nowrap}
+
+/* ── FILTER PILLS ── */
+.flt-row{display:flex;gap:7px;overflow-x:auto;padding:4px 17px 14px;scrollbar-width:none}
+.flt-row::-webkit-scrollbar{display:none}
+.f-pill{flex-shrink:0;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:600;color:var(--g6);background:var(--card);border:1.5px solid var(--border);cursor:pointer;transition:.18s;white-space:nowrap}
+.f-pill.on{background:linear-gradient(130deg,var(--dark),#333);border-color:var(--dark);color:#fff}
+
+/* ── DEAL CARDS ── */
+.deals{display:flex;flex-direction:column;gap:10px;padding:0 17px}
+.d-card{background:var(--card);border-radius:var(--r);border:1.5px solid var(--border);overflow:hidden;position:relative;cursor:pointer;transition:border-color .2s,box-shadow .2s;animation:cardUp .28s ease both}
+@keyframes cardUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.d-card:active{border-color:var(--red);box-shadow:0 0 0 3px var(--red-bg)}
+.d-inner{display:flex}
+.d-bar{width:4px;flex-shrink:0}
+.d-body{padding:13px 13px 12px 12px;flex:1;min-width:0}
+.d-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px}
+.d-store{font-family:'Noto Sans Display',sans-serif;font-weight:800;font-size:14px;color:var(--dark);line-height:1.2}
+.d-badge{flex-shrink:0;background:var(--grad);border-radius:6px;padding:3px 10px;font-family:'Noto Sans Display',sans-serif;font-size:11.5px;font-weight:800;color:#fff;white-space:nowrap}
+.d-title{font-size:12.5px;font-weight:500;color:var(--g8);margin-bottom:5px;line-height:1.45}
+.d-desc{font-size:11.5px;color:var(--g6);line-height:1.55;margin-bottom:9px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.d-tags{display:flex;flex-wrap:wrap;gap:5px}
+.tag{font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:6px;display:inline-flex;align-items:center;gap:3px;line-height:1.3}
+.t-cat{background:var(--red-bg);color:var(--red);border:1px solid var(--red-bdr)}
+.t-city{background:var(--blu-bg);color:var(--blu);border:1px solid var(--blu-bdr)}
+.t-date{background:var(--grn-bg);color:var(--grn);border:1px solid var(--grn-bdr)}
+.t-loc{background:var(--pur-bg);color:var(--pur);border:1px solid var(--pur-bdr)}
+.hot-tag{position:absolute;top:0;left:-1px;background:linear-gradient(90deg,var(--red),var(--org));color:#fff;font-size:9px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;padding:3px 9px 3px 7px;border-radius:0 0 5px 0;display:flex;align-items:center;gap:3px}
+.hot-tag+.d-inner .d-body{padding-top:22px}
+
+/* ── BANNER AD (yellow, between listings) ── */
+.ad-banner{background:linear-gradient(135deg,#FFFBE0,#FFF3B0);border-radius:var(--r);border:1.5px solid var(--yel-bdr);overflow:hidden;cursor:pointer}
+.ad-inner{display:flex}
+.ad-bar{width:4px;flex-shrink:0;background:var(--grad-yel)}
+.ad-body{padding:12px 13px 12px 12px;flex:1}
+.ad-sp{display:flex;align-items:center;gap:5px;font-size:9.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--yel-dk);margin-bottom:4px}
+.ad-title{font-family:'Noto Sans Display',sans-serif;font-weight:800;font-size:14px;color:var(--dark);margin-bottom:3px}
+.ad-sub{font-size:12px;color:var(--g6);line-height:1.45;margin-bottom:8px}
+.ad-cta{display:inline-flex;align-items:center;gap:5px;background:var(--yel);color:var(--dark);font-size:12px;font-weight:800;padding:5px 13px;border-radius:6px}
+
+/* ── EMPTY / LOADING ── */
+.empty{text-align:center;padding:52px 24px}
+.empty-ico{width:64px;height:64px;background:var(--g1);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;color:var(--g4)}
+.empty-t{font-family:'Noto Sans Display',sans-serif;font-size:16px;font-weight:800;color:var(--dark);margin-bottom:5px}
+.empty-s{font-size:13px;color:var(--g6);line-height:1.5}
+.spin-wrap{display:flex;flex-direction:column;align-items:center;padding:52px 20px;gap:14px}
+.spin{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--red);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── BOTTOM NAV ── */
+.bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--white);border-top:1.5px solid var(--border);display:flex;padding:6px 0 14px;z-index:80;box-shadow:0 -4px 20px rgba(0,0,0,.07)}
+.nv{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:5px 0;-webkit-tap-highlight-color:transparent;color:var(--g4)}
+.nv-lbl{font-size:10px;font-weight:600;color:var(--g4)}
+.nv.on{color:var(--red)}
+.nv.on .nv-lbl{color:var(--red)}
+.nv-pip{width:4px;height:4px;border-radius:50%;background:var(--red);opacity:0;margin-top:1px}
+.nv.on .nv-pip{opacity:1}
+
+/* ── OVERLAYS ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:150;display:none;align-items:flex-end;justify-content:center}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sheet{background:var(--card);border-radius:22px 22px 0 0;padding:22px 18px 36px;width:100%;max-width:480px;animation:sheetUp .25s ease;border-top:2px solid var(--border)}
+.sheet-t{font-family:'Noto Sans Display',sans-serif;font-size:16px;font-weight:800;color:var(--dark);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.city-opt{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--border);background:var(--g1);font-size:14px;font-weight:500;color:var(--dark);cursor:pointer;transition:.18s;margin-bottom:8px}
+.city-opt:active{border-color:var(--red)}
+.city-opt.on{background:var(--dark);border-color:var(--dark);color:#fff}
+.city-chk{margin-left:auto;width:20px;height:20px;border-radius:50%;background:var(--yel);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--dark)}
+.det-sheet{background:var(--card);border-radius:22px 22px 0 0;padding:22px 18px 44px;width:100%;max-width:480px;max-height:88vh;overflow-y:auto;animation:sheetUp .25s ease;position:relative;border-top:2px solid var(--border)}
+.det-close{position:absolute;top:16px;right:16px;width:32px;height:32px;background:var(--g1);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--g6)}
+.det-eyebrow{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--g4);margin-bottom:5px;display:flex;align-items:center;gap:5px}
+.det-store{font-family:'Noto Sans Display',sans-serif;font-size:21px;font-weight:900;color:var(--dark);margin-bottom:8px;line-height:1.2}
+.det-disc{display:inline-flex;align-items:center;gap:6px;background:var(--grad);color:#fff;font-family:'Noto Sans Display',sans-serif;font-size:13px;font-weight:800;padding:5px 14px;border-radius:7px;margin-bottom:14px}
+.det-desc{font-size:13.5px;color:var(--g6);line-height:1.65;margin-bottom:14px}
+.det-div{height:1px;background:var(--border);margin:12px 0}
+.det-sec{margin-bottom:12px}
+.det-lbl{font-size:10.5px;font-weight:700;color:var(--g4);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;display:flex;align-items:center;gap:5px}
+.det-val{font-size:13.5px;color:var(--dark);line-height:1.6}
+
+/* ── CATALOGS / TRENDS / ALERTS ── */
+.s-card{background:var(--card);border-radius:var(--r);border:1.5px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:13px;margin-bottom:10px;cursor:pointer;transition:.18s}
+.s-card:active{border-color:var(--red)}
+.s-ico{width:46px;height:46px;border-radius:12px;background:var(--g1);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--g6)}
+.s-name{font-family:'Noto Sans Display',sans-serif;font-weight:800;font-size:14px;color:var(--dark)}
+.s-cat{font-size:12px;color:var(--g6);margin-top:2px}
+.s-arr{color:var(--g4);margin-left:auto;display:flex}
+.tr-card{background:var(--card);border-radius:var(--r);border:1.5px solid var(--border);overflow:hidden;margin-bottom:10px;cursor:pointer}
+.tr-bar{height:4px}
+.tr-inner{padding:14px 16px;display:flex;align-items:center;gap:13px}
+.tr-ico{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tr-name{font-family:'Noto Sans Display',sans-serif;font-weight:800;font-size:14px;color:var(--dark)}
+.tr-sub{font-size:12px;color:var(--g6);margin-top:2px;line-height:1.4}
+.tr-cat{background:var(--g1);border:1px solid var(--border);padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:600;color:var(--g6);flex-shrink:0;margin-left:auto;white-space:nowrap}
+.al-card{background:var(--card);border-radius:var(--r);border:1.5px solid var(--border);padding:26px 20px;text-align:center;margin-bottom:12px}
+.al-ico{width:68px;height:68px;background:var(--red-bg);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;color:var(--red);border:2px solid var(--red-bdr)}
+.al-input{width:100%;max-width:300px;background:var(--g1);border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;font-size:13.5px;color:var(--dark);transition:.2s;display:block;margin:0 auto 10px}
+.al-input:focus{border-color:var(--red);background:#fff}
+.al-btn{width:100%;max-width:300px;margin:0 auto;padding:12px;border-radius:10px;background:var(--grad);color:#fff;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px}
+.top-card{background:var(--card);border-radius:var(--r);border:1.5px solid var(--border);padding:18px}
+.top-ttl{font-family:'Noto Sans Display',sans-serif;font-weight:800;font-size:14px;color:var(--dark);margin-bottom:13px;display:flex;align-items:center;gap:7px}
+.topic{background:var(--g1);border:1.5px solid var(--border);padding:7px 13px;border-radius:20px;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--g8);display:inline-block;margin:0 6px 8px 0;transition:.18s}
+.topic.on{background:var(--dark);border-color:var(--dark);color:#fff}
+
+/* ── NEAR ME PAGE ── */
+#map{width:100%;height:260px;border-radius:var(--r);overflow:hidden;z-index:1;border:1.5px solid var(--border)}
+.nm-wrap{padding:17px}
+.nm-status{background:var(--card);border-radius:var(--r);border:1.5px solid var(--border);padding:24px 20px;text-align:center;margin-bottom:14px}
+.nm-status-ico{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px}
+.nm-status-ico.idle{background:var(--g1);color:var(--g4)}
+.nm-status-ico.loading{background:#EEF3FF;color:var(--blu);animation:pulse 1.4s ease infinite}
+.nm-status-ico.found{background:var(--grn-bg);color:var(--grn)}
+.nm-status-ico.error{background:var(--red-bg);color:var(--red)}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.7;transform:scale(.95)}}
+.nm-status-title{font-family:'Noto Sans Display',sans-serif;font-weight:900;font-size:16px;color:var(--dark);margin-bottom:6px}
+.nm-status-sub{font-size:13px;color:var(--g6);line-height:1.5;margin-bottom:16px;max-width:260px;margin-left:auto;margin-right:auto}
+.nm-locate-btn{display:inline-flex;align-items:center;gap:8px;background:var(--grad);color:#fff;font-size:14px;font-weight:700;padding:12px 24px;border-radius:10px;cursor:pointer;border:none;font-family:'Noto Sans',sans-serif;transition:.18s}
+.nm-locate-btn:active{opacity:.85}
+.nm-locate-btn.loading{background:var(--g2);color:var(--g6);pointer-events:none}
+.nm-loc-pill{display:inline-flex;align-items:center;gap:6px;background:var(--grn-bg);border:1px solid var(--grn-bdr);color:var(--grn);font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px;margin-bottom:14px}
+.nm-map-wrap{margin-bottom:14px;position:relative}
+.nm-map-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--g4);margin-bottom:6px;display:flex;align-items:center;gap:5px}
+.nm-section-title{font-family:'Noto Sans Display',sans-serif;font-weight:800;font-size:15px;color:var(--dark);margin-bottom:12px;display:flex;align-items:center;gap:7px}
+.nm-deal-card{background:var(--card);border-radius:var(--r);border:1.5px solid var(--border);padding:13px 14px;margin-bottom:10px;cursor:pointer;transition:.18s;display:flex;align-items:flex-start;gap:12px}
+.nm-deal-card:active{border-color:var(--red)}
+.nm-deal-ico{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.nm-deal-store{font-family:'Noto Sans Display',sans-serif;font-weight:800;font-size:13.5px;color:var(--dark);margin-bottom:2px}
+.nm-deal-title{font-size:12px;color:var(--g6);line-height:1.4;margin-bottom:6px}
+.nm-deal-badge{display:inline-flex;align-items:center;gap:4px;background:var(--grad);color:#fff;font-size:11px;font-weight:800;padding:2px 9px;border-radius:5px}
+.nm-deal-dist{font-size:11px;font-weight:600;color:var(--blu);display:flex;align-items:center;gap:3px;margin-left:auto;flex-shrink:0;white-space:nowrap}
+/* Leaflet custom marker */
+.lf-marker{width:32px;height:32px;border-radius:50% 50% 50% 4px;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.25);transform:rotate(-45deg)}
+.lf-marker-inner{transform:rotate(45deg);display:flex;align-items:center;justify-content:center}
+.lf-user{width:16px;height:16px;background:var(--blu);border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+
+.toast{position:fixed;bottom:92px;left:50%;transform:translateX(-50%) translateY(12px);background:var(--dark);color:#fff;font-size:13px;font-weight:600;padding:10px 18px;border-radius:20px;z-index:300;opacity:0;transition:.3s;white-space:nowrap;pointer-events:none;display:flex;align-items:center;gap:7px}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ═══ POPUP AD ═══ -->
+  <div id="popup-bg" onclick="closePopup(event)" style="display:none">
+    <div class="popup-card">
+      <div class="popup-close" onclick="closePopup()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+      <div class="popup-top">
+        <div class="popup-top-bg" style="background:linear-gradient(135deg,#0A2B6E,#1448B0 50%,#1A6A2A)"></div>
+        <div class="popup-top-content">
+          <div class="popup-disc-circle">
+            <div class="popup-disc-pct">50%</div>
+            <div class="popup-disc-off">OFF</div>
+          </div>
+          <div class="popup-store-name">Carrefour</div>
+        </div>
+      </div>
+      <div class="popup-body">
+        <div class="popup-eyebrow">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Featured Deal
+        </div>
+        <div class="popup-title">Summer Splash Festival</div>
+        <div class="popup-sub">Up to 50% off pool gear, outdoor furniture, inflatables & summer essentials. Starting from AED 68.99.</div>
+        <div class="popup-meta">
+          <span class="popup-tag t-date">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Until 15 May 2026
+          </span>
+          <span class="popup-tag t-city">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            All UAE Stores & Online
+          </span>
+        </div>
+        <div class="popup-cta">Shop Now →</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ HEADER ═══ -->
+  <div class="hdr">
+    <div class="hdr-row">
+      <div class="logo">
+        <div class="logo-icon">
+          <div class="logo-bar" style="width:16px"></div>
+          <div class="logo-bar" style="width:12px"></div>
+          <div class="logo-bar" style="width:8px"></div>
+          <div class="logo-dot"></div>
+        </div>
+        <div class="logo-wordmark">
+          <span class="logo-name">suqly</span><span class="logo-ext">.app</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="lang-toggle">
+          <div class="lang-opt on" id="lang-en" onclick="setLang('en')">EN</div>
+          <div class="lang-opt" id="lang-ar" onclick="setLang('ar')">AR</div>
+        </div>
+        <button class="city-btn" onclick="openCity()">
+          <div class="city-pip"></div>
+          <span id="city-lbl">Dubai</span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="srch-wrap">
+      <span class="srch-ico">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </span>
+      <input class="srch" id="srch" placeholder="Search stores, deals, brands…" oninput="renderDeals()"/>
+    </div>
+  </div>
+
+  <!-- ═══ TICKER ═══ -->
+  <div class="ticker">
+    <span class="ticker-ico">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
+    </span>
+    <span class="ticker-text anim" id="tick-txt">🔥 Carrefour Summer Splash — Up to 50% OFF pool &amp; outdoor gear until 15 May</span>
+    <span class="ticker-new">NEW</span>
+  </div>
+
+  <!-- ═══ HOME PAGE ═══ -->
+  <div id="pg-home">
+    <div class="hero-row" id="hero-row"></div>
+
+    <!-- Categories -->
+    <div class="sec-hd"><div class="sec-t">Categories</div></div>
+    <div class="cats" id="cats"></div>
+
+    <!-- Category Sponsor Strip -->
+    <div class="cat-ads" id="cat-ads"></div>
+
+    <!-- Filters -->
+    <div class="flt-row" id="flt-row"></div>
+
+    <!-- Deals -->
+    <div class="sec-hd">
+      <div class="sec-t" id="deals-lbl">All Deals</div>
+      <div class="sec-c" id="deals-cnt"></div>
+    </div>
+    <div class="deals" id="deals"></div>
+    <div style="height:16px"></div>
+  </div>
+
+  <!-- ═══ CATALOGS PAGE ═══ -->
+  <div id="pg-catalogs" style="display:none">
+    <div class="sec-hd"><div class="sec-t">Store Catalogs</div><div class="sec-c">Weekly flyers & offers</div></div>
+    <div style="padding:0 17px" id="catalogs-list"></div>
+    <div style="height:16px"></div>
+  </div>
+
+  <!-- ═══ TRENDS PAGE ═══ -->
+  <div id="pg-trends" style="display:none">
+    <div class="sec-hd"><div class="sec-t">Shopping Trends</div><div class="sec-c">What's hot right now</div></div>
+    <div style="padding:0 17px" id="trends-list"></div>
+    <div style="height:16px"></div>
+  </div>
+
+  <!-- ═══ ALERTS PAGE ═══ -->
+  <div id="pg-alerts" style="display:none;padding:17px">
+    <div class="al-card">
+      <div class="al-ico">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </div>
+      <div style="font-family:'Noto Sans Display',sans-serif;font-weight:900;font-size:18px;color:var(--dark);margin-bottom:8px">Deal Alerts</div>
+      <div style="font-size:13px;color:var(--g6);line-height:1.65;margin-bottom:20px;max-width:280px;margin-left:auto;margin-right:auto">Get notified the moment your favourite store drops a new sale.</div>
+      <input class="al-input" id="alert-email" type="email" placeholder="your@email.com"/>
+      <button class="al-btn" onclick="submitAlert()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        Notify Me
+      </button>
+    </div>
+    <div class="top-card">
+      <div class="top-ttl">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+        Popular Topics
+      </div>
+      <div id="alert-topics"></div>
+    </div>
+  </div>
+
+  <!-- ═══ NEAR ME PAGE ═══ -->
+  <div id="pg-nearme" style="display:none">
+    <div class="nm-wrap">
+
+      <!-- Status / locate card -->
+      <div class="nm-status" id="nm-status-card">
+        <div class="nm-status-ico idle" id="nm-ico">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        </div>
+        <div class="nm-status-title" id="nm-title">Deals Near You</div>
+        <div class="nm-status-sub" id="nm-sub">Tap below to find discounts and sales happening near your current location.</div>
+        <button class="nm-locate-btn" id="nm-btn" onclick="locateMe()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+          Find Deals Near Me
+        </button>
+      </div>
+
+      <!-- Map (hidden until location found) -->
+      <div id="nm-map-section" style="display:none">
+        <div class="nm-loc-pill" id="nm-loc-pill">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span id="nm-loc-text">Detecting…</span>
+        </div>
+        <div class="nm-map-wrap">
+          <div class="nm-map-label">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+            Stores & Malls on Map
+          </div>
+          <div id="map"></div>
+        </div>
+        <div class="nm-section-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          <span id="nm-deals-title">Active Deals Nearby</span>
+        </div>
+        <div id="nm-deals-list"></div>
+        <button class="nm-locate-btn" style="background:var(--g1);color:var(--g8);margin-top:4px;margin-bottom:8px;width:100%;justify-content:center" onclick="locateMe()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+          Re-detect Location
+        </button>
+      </div>
+
+    </div>
+    <div style="height:16px"></div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- CITY MODAL -->
+<div class="overlay" id="city-ov" onclick="closeCity(event)">
+  <div class="sheet">
+    <div class="sheet-t">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      Select City
+    </div>
+    <div id="city-opts"></div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="overlay" id="det-ov" onclick="closeDetail(event)">
+  <div class="det-sheet">
+    <div class="det-close" onclick="closeDetail()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </div>
+    <div id="det-body"></div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bnav">
+  <div class="nv on" id="nv-home" onclick="goPage('home')">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span class="nv-lbl">Home</span><div class="nv-pip"></div>
+  </div>
+  <div class="nv" id="nv-catalogs" onclick="goPage('catalogs')">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+    <span class="nv-lbl">Catalogs</span><div class="nv-pip"></div>
+  </div>
+  <div class="nv" id="nv-nearme" onclick="goPage('nearme')">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+    <span class="nv-lbl">Near Me</span><div class="nv-pip"></div>
+  </div>
+  <div class="nv" id="nv-trends" onclick="goPage('trends')">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+    <span class="nv-lbl">Trends</span><div class="nv-pip"></div>
+  </div>
+  <div class="nv" id="nv-alerts" onclick="goPage('alerts')">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    <span class="nv-lbl">Alerts</span><div class="nv-pip"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══ CONFIG ══════════════════════════════════════
+// Replace with your Supabase credentials when ready
+const DEMO_MODE = true; // set false and fill below to use live DB
+const SUPA_URL = 'https://YOUR_PROJECT_ID.supabase.co';
+const SUPA_KEY = 'YOUR_ANON_KEY';
+// ════════════════════════════════════════════════
+
+let city='Dubai', cat='all', flt='All', annIdx=0, lang='en';
+
+// ── TRANSLATIONS ──
+const T = {
+  en:{
+    home:'Home', catalogs:'Catalogs', nearme:'Near Me', trends:'Trends', alerts:'Alerts',
+    categories:'Categories', allDeals:'All Deals', deals:'deals', deal:'deal',
+    selectCity:'Select City', findDeals:'Find Deals Near Me', reDetect:'Re-detect Location',
+    dealsNear:'Active Deals Nearby', storesOnMap:'Stores & Malls on Map',
+    notifyMe:'Notify Me', alertsTitle:'Deal Alerts',
+    alertsSub:'Get notified the moment your favourite store drops a new sale.',
+    emailPlaceholder:'your@email.com', popularTopics:'Popular Topics',
+    noDeals:'No deals found', noDealsHint:'Try a different city, category or search term',
+    loading:'Loading deals…', searchPlaceholder:'Search stores, deals, brands…',
+    validUntil:'Valid Until', city:'City', category:'Category', locations:'Locations',
+    ongoing:'Ongoing', live:'Live', hot:'HOT', sponsored:'Sponsored',
+    off:'off', featuredDeal:'Featured Deal', shopNow:'Shop Now',
+    weeklyFlyers:'Weekly flyers & offers', whatsHot:"What's hot right now",
+    catalogsTitle:'Store Catalogs',
+    filtersAll:'All', filtersHot:'Hot Deals', filtersEnding:'Ending Soon',
+    filtersHighest:'Highest Discount', filtersOnline:'Online Only', filtersNew:'New Today',
+    cats:{all:'All',food:'Food & Drinks',fashion:'Fashion',health:'Health',
+          home:'Home & Decor',electronics:'Electronics',auto:'Automotive',
+          leisure:'Things To Do',services:'Services'},
+  },
+  ar:{
+    home:'الرئيسية', catalogs:'الكتالوجات', nearme:'قريب مني', trends:'الاتجاهات', alerts:'التنبيهات',
+    categories:'الفئات', allDeals:'جميع العروض', deals:'عروض', deal:'عرض',
+    selectCity:'اختر مدينة', findDeals:'اعثر على العروض بالقرب', reDetect:'إعادة تحديد الموقع',
+    dealsNear:'العروض النشطة القريبة', storesOnMap:'المتاجر والمولات على الخريطة',
+    notifyMe:'أرسل لي إشعاراً', alertsTitle:'تنبيهات العروض',
+    alertsSub:'احصل على إشعار فور إطلاق متجرك المفضل عرضاً جديداً.',
+    emailPlaceholder:'بريدك@إيميل.كوم', popularTopics:'المواضيع الشائعة',
+    noDeals:'لا توجد عروض', noDealsHint:'جرب مدينة أو فئة أو كلمة بحث مختلفة',
+    loading:'جاري تحميل العروض…', searchPlaceholder:'ابحث عن متاجر وعروض وماركات…',
+    validUntil:'صالح حتى', city:'المدينة', category:'الفئة', locations:'المواقع',
+    ongoing:'مستمر', live:'مباشر', hot:'ساخن', sponsored:'إعلان',
+    off:'خصم', featuredDeal:'عرض مميز', shopNow:'تسوق الآن',
+    weeklyFlyers:'كتالوجات أسبوعية وعروض', whatsHot:'الأكثر رواجاً الآن',
+    catalogsTitle:'كتالوجات المتاجر',
+    filtersAll:'الكل', filtersHot:'أفضل العروض', filtersEnding:'تنتهي قريباً',
+    filtersHighest:'أعلى خصم', filtersOnline:'أونلاين فقط', filtersNew:'جديد اليوم',
+    cats:{all:'الكل',food:'طعام ومشروبات',fashion:'أزياء',health:'صحة',
+          home:'منزل وديكور',electronics:'إلكترونيات',auto:'سيارات',
+          leisure:'أنشطة',services:'خدمات'},
+  }
+};
+function t(k){ return T[lang][k]||T.en[k]||k; }
+function tc(k){ return (T[lang].cats||{})[k]||(T.en.cats||{})[k]||k; }
+
+// Arabic announcements
+const ANNS_AR = [
+  '🔥 كارفور مهرجان الصيف — خصم 50٪ على أدوات المسبح حتى 15 مايو',
+  '📱 لولو تك ديلز — هواتف وتلفزيونات وأجهزة منزلية بخصم 45٪',
+  '👟 كول إت سبرينج — خصم 70٪ على الأحذية والحقائب في مراكز تسوق دبي',
+  '⚡ نون فلاش سيل — خصم 70٪ على الإلكترونيات اليوم فقط',
+  '🛍️ أمريكان إيغل — خصم من 30٪ إلى 75٪ على أزياء الرجال والنساء',
+  '💛 باندورا — خصم 50٪ على المجوهرات والإكسسوارات',
+];
+const CITIES = ['Dubai','Abu Dhabi','Sharjah','Ajman','All UAE'];
+
+// ── INLINE SVG ICON PATHS ──
+const PATHS = {
+  'tag':          '<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>',
+  'utensils':     '<line x1="3" y1="2" x2="3" y2="22"/><path d="M3 8h7a2 2 0 0 0 0-4H3"/><path d="M21 2v20"/><path d="M21 12H11"/>',
+  'shirt':        '<path d="M20.38 3.46L16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.57a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.57a2 2 0 0 0-1.34-2.23z"/>',
+  'heart':        '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>',
+  'home':         '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
+  'smartphone':   '<rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>',
+  'car':          '<rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>',
+  'ticket':       '<path d="M5 5h14a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-3a2 2 0 0 0 0-4V7a2 2 0 0 1 2-2z"/><line x1="9" y1="5" x2="9" y2="19"/>',
+  'wrench':       '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+  'zap':          '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+  'star':         '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+  'external-link':'<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>',
+  'map-pin':      '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
+  'calendar':     '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+  'store':        '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><line x1="9" y1="22" x2="9" y2="12"/><line x1="15" y1="22" x2="15" y2="12"/>',
+  'map':          '<polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/>',
+  'check':        '<polyline points="20 6 9 17 4 12"/>',
+  'building':     '<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/>',
+  'shopping-cart':'<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>',
+  'package':      '<path d="M12 2l9 4.9V17L12 22 3 17V6.9L12 2z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>',
+  'monitor':      '<rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>',
+  'heart-pulse':  '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M3.22 12H9.5l1.5-3 2 4.5 1.5-3H21"/>',
+  'lamp':         '<path d="M8 2h8l4 10H4L8 2z"/><path d="M12 12v6"/><path d="M8 22v-2c0-1.1.9-2 2-2h4a2 2 0 0 1 2 2v2H8z"/>',
+  'shopping-bag': '<path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>',
+  'check-circle': '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
+  'gift':         '<polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>',
+  'sun':          '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>',
+  'users':        '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  'chevron-right':'<polyline points="9 18 15 12 9 6"/>',
+  'search-x':     '<path d="m13.5 8.5-5 5"/><path d="m8.5 8.5 5 5"/><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  'percent':      '<line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/>',
+};
+function ico(name,size=12,color='currentColor'){
+  const p=PATHS[name]||PATHS['tag'];
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;flex-shrink:0;vertical-align:middle">${p}</svg>`;
+}
+
+// ═══ MOCKUP DATA (based on real current offers from shoppinginformer.com) ═══
+const DEALS = [
+  // HOT / URGENT
+  {id:1,  store:'Carrefour',        store_ar:'كارفور',
+   title:'Summer Splash Festival',  title_ar:'مهرجان صيف سبلاش',
+   subtitle:'Pools, floats & outdoor gear from AED 68.99', subtitle_ar:'مسابح وأدوات خارجية من 68.99 درهم',
+   description:'Up to 50% off inflatable pools, fun floats, outdoor furniture and all summer essentials. Starting from AED 68.99. Available across UAE stores and online.',
+   description_ar:'خصم يصل إلى 50٪ على المسابح والعوامات وأثاث الحديقة ومستلزمات الصيف. ابتداءً من 68.99 درهم. متاح في جميع متاجر الإمارات وأونلاين.',
+   discount:'Up to 50% OFF', cat:'home',        city:'All UAE', locations:'Wafi Mall,Dubai; Burjuman,Dubai; Dubai Festival City; Ibn Battuta Mall; Yas Mall,Abu Dhabi; Online Store', end_date:'2026-05-15', urgent:true},
+
+  {id:2,  store:'Lulu Hypermarket', store_ar:'لولو هايبرماركت',
+   title:'Tech Deals Unlocked',     title_ar:'عروض التكنولوجيا مكشوفة',
+   subtitle:'Smartphones, TVs & appliances up to 45% off', subtitle_ar:'هواتف وتلفزيونات وأجهزة بخصم 45٪',
+   description:'Unbeatable discounts on smartphones, tablets, smart TVs, laptops, home appliances, headphones and accessories across all Lulu stores.',
+   description_ar:'خصومات لا تُقاوم على الهواتف الذكية والأجهزة اللوحية والتلفزيونات الذكية والأجهزة المنزلية في جميع متاجر لولو.',
+   discount:'Up to 45% OFF', cat:'electronics', city:'All UAE', locations:'Al Qusais,Dubai; Al Barsha,Dubai; Silicon Oasis,Dubai; Festival Plaza; Arabian Center; Online Store', end_date:'2026-04-23', urgent:true},
+
+  {id:3,  store:'Call it Spring',   store_ar:'كول إت سبرينج',
+   title:'Spring Footwear & Bags Sale', title_ar:'تخفيضات الأحذية والحقائب',
+   subtitle:'Up to 70% off shoes & bags across Dubai malls', subtitle_ar:'خصم يصل 70٪ على الأحذية والحقائب',
+   description:'Up to 70% off your favourite shoes and bags from Call it Spring. Wide range of styles for men and women across all major malls.',
+   description_ar:'خصم يصل إلى 70٪ على أحذيتك وحقائبك المفضلة. مجموعة واسعة من التصاميم للرجال والنساء في جميع المراكز التجارية الكبرى.',
+   discount:'Up to 70% OFF', cat:'fashion',     city:'Dubai',    locations:'Dubai Mall; Mall of Emirates; Mirdif City Center; Dubai Festival City; Deira City Center; Burjuman', end_date:'2026-05-01', urgent:true},
+
+  {id:4,  store:'Noon',             store_ar:'نون',
+   title:'Flash Electronics Sale',  title_ar:'تخفيضات الإلكترونيات السريعة',
+   subtitle:'Phones, laptops & smart home — today only!', subtitle_ar:'هواتف ولابتوب ومنزل ذكي — اليوم فقط!',
+   description:'Today-only prices on phones, laptops, gaming, smart home and accessories. Limited stock — shop fast before it sells out.',
+   description_ar:'أسعار اليوم فقط على الهواتف واللابتوب والألعاب والمنزل الذكي. كميات محدودة — تسوق بسرعة!',
+   discount:'Up to 70% OFF', cat:'electronics', city:'All UAE', locations:'Online Only', end_date:'2026-04-24', urgent:true},
+
+  {id:5,  store:'Bath & Body Works', store_ar:'باث آند بودي وركس',
+   title:'Ramadan Offers',           title_ar:'عروض رمضان',
+   subtitle:'Body care, candles & gift sets on sale', subtitle_ar:'منتجات العناية والشموع وطقم الهدايا بسعر مخفض',
+   description:'Special Ramadan pricing on body care, candles, fragrance mists, and gift sets. Available in stores and online across the UAE.',
+   description_ar:'أسعار رمضانية مميزة على منتجات العناية بالجسم والشموع ورذاذ العطور وطقم الهدايا في جميع الإمارات.',
+   discount:'Up to 40% OFF', cat:'health',     city:'Dubai',    locations:'Mall of Emirates; Dubai Mall; Ibn Battuta Mall; Mirdif City Center; Dubai Festival City; Online Store', end_date:'2026-04-30', urgent:true},
+
+  // REGULAR
+  {id:6,  store:'Carrefour', store_ar:'كارفور', title:'Beauty Offers — Face, Oral & Personal Care', title_ar:'عروض التجميل — العناية بالوجه والفم والجسم',
+   subtitle:'Face care, oral care & health essentials', subtitle_ar:'عناية بالوجه والفم ومستلزمات صحية',
+   description:'Discover beauty in every choice with Carrefour\'s best deals on face care, oral care, personal care, health care, and much more.',
+   description_ar:'اكتشف الجمال في كل اختيار مع أفضل عروض كارفور على العناية بالوجه والفم والجسم والصحة.',
+   discount:'Special Prices', cat:'health', city:'Dubai', locations:'Wafi Mall; Burjuman; Al Ghurair Center; Dubai Festival City; Ibn Battuta Mall', end_date:'2026-04-27', urgent:false},
+
+  {id:7,  store:'Carrefour', store_ar:'كارفور', title:'Electronics Catalog — LEDs, Laptops & More', title_ar:'كتالوج الإلكترونيات — شاشات ولابتوب والمزيد',
+   subtitle:'LED TVs, tablets, phones & home appliances', subtitle_ar:'تلفزيونات وأجهزة لوحية وهواتف وأجهزة منزلية',
+   description:'Offers on LED TVs, speakers, tablets, laptops, food processors, washing machines, mobile phones and household items.',
+   description_ar:'عروض على التلفزيونات وأجهزة الصوت والأجهزة اللوحية واللابتوب ومحضرات الطعام وغسالات الملابس.',
+   discount:'Up to 45% OFF', cat:'electronics', city:'Dubai', locations:'Wafi Mall; Burjuman; Al Ghurair Center; Dubai Festival City; Ibn Battuta Mall', end_date:'2026-04-27', urgent:false},
+
+  {id:8,  store:'American Eagle', store_ar:'أمريكان إيغل', title:'Part Sale — Men & Women Fashion', title_ar:'تخفيضات جزئية — أزياء رجالية ونسائية',
+   subtitle:'Trendy casuals 30–75% off at all outlets', subtitle_ar:'ملابس عصرية بخصم 30-75٪ في جميع الفروع',
+   description:'Get 30% to 75% off at American Eagle Outfitters. Trendy casuals for men and women across all outlets and online.',
+   description_ar:'احصل على خصم من 30٪ إلى 75٪ في أمريكان إيغل. ملابس عصرية للرجال والنساء في جميع الفروع وأونلاين.',
+   discount:'30–75% OFF', cat:'fashion', city:'Dubai', locations:'Deira City Center; Mirdif City Center; Mall of Emirates; Dubai Mall; Dubai Festival City; Online Store', end_date:'2026-05-10', urgent:false},
+
+  {id:9,  store:'Columbia', store_ar:'كولومبيا', title:'Winter Part Sale — Outdoor Lifestyle', title_ar:'تخفيضات شتوية — نمط الحياة الخارجي',
+   subtitle:'Footwear, apparel & accessories 25–50% off', subtitle_ar:'أحذية وملابس وإكسسوارات بخصم 25-50٪',
+   description:'25% to 50% off on footwear, apparel and accessories from Columbia\'s outdoor and lifestyle range across Dubai malls.',
+   description_ar:'خصم من 25٪ إلى 50٪ على أحذية وملابس وإكسسوارات كولومبيا للنشاط الخارجي في مراكز تسوق دبي.',
+   discount:'25–50% OFF', cat:'fashion', city:'Dubai', locations:'Mirdif City Center; Dubai Mall; Mall of Emirates; Ibn Battuta Mall', end_date:'2026-04-30', urgent:false},
+
+  {id:10, store:'Levi\'s', store_ar:'ليفايز', title:'Part Sale — Men & Women Denim', title_ar:'تخفيضات جينز للرجال والنساء',
+   subtitle:'Classic denim & apparel 25–50% off', subtitle_ar:'جينز كلاسيكي وملابس بخصم 25-50٪',
+   description:'Part sale at Levi\'s stores offering 25% to 50% off on selected range of menswear and women\'s fashion. Classic denim at great prices.',
+   description_ar:'تخفيضات في متاجر ليفايز من 25٪ إلى 50٪ على تشكيلة مختارة من الملابس الرجالية والنسائية.',
+   discount:'25–50% OFF', cat:'fashion', city:'Dubai', locations:'Dubai Mall; Mall of Emirates; City Center Deira; Mirdif City Center', end_date:'2026-05-05', urgent:false},
+
+  {id:11, store:'Pandora', store_ar:'باندورا', title:'Part Sale — Jewellery & Gifts', title_ar:'تخفيضات مجوهرات وهدايا',
+   subtitle:'Bracelets, rings & necklaces 25–50% off', subtitle_ar:'أساور وخواتم وقلائد بخصم 25-50٪',
+   description:'Get 25% to 50% off on selected Pandora items — bracelets, rings, earrings, necklaces and pendants to express your personal style.',
+   description_ar:'احصل على خصم 25٪ إلى 50٪ على منتجات باندورا المختارة — أساور وخواتم وأقراط وقلائد.',
+   discount:'25–50% OFF', cat:'fashion', city:'Dubai', locations:'Dubai Mall; Mall of Emirates; Souk Madinat; Marina Mall; Ibn Battuta Mall; Mercato Mall; Dubai Festival City', end_date:'2026-05-01', urgent:false},
+
+  {id:12, store:'Naturalizer', store_ar:'ناتوراليزر', title:'Part Sale — Shoes & Footwear', title_ar:'تخفيضات الأحذية',
+   subtitle:'Beautiful fits for women 25–50% off', subtitle_ar:'أحذية نسائية أنيقة بخصم 25-50٪',
+   description:'Enjoy Part Sale 25%–50% off at Naturalizer! Beautiful fits and amazing prices on women\'s footwear across major Dubai malls.',
+   description_ar:'استمتع بتخفيضات 25٪ إلى 50٪ في ناتوراليزر! أحذية نسائية بمقاسات رائعة وأسعار مذهلة.',
+   discount:'25–50% OFF', cat:'fashion', city:'Dubai', locations:'Mirdif City Center; Dubai Mall; Town Center Jumeirah; Burjuman; Arabian Center; Dubai Festival City; Mall of Emirates', end_date:'2026-04-30', urgent:false},
+
+  {id:13, store:'Sunglass Hut', store_ar:'سانجلاس هت', title:'Part Sale — Selected Eyewear Brands', title_ar:'تخفيضات على نظارات مختارة',
+   subtitle:'Premium sunglasses brands on part sale', subtitle_ar:'علامات نظارات فاخرة بتخفيضات جزئية',
+   description:'Part Sale at Sunglass Hut on selected eyewear brands. Shop the greatest range of premium sunglasses at discounted prices.',
+   description_ar:'تخفيضات جزئية في سانجلاس هت على علامات تجارية مختارة. تسوق أفضل النظارات الفاخرة بأسعار مخفضة.',
+   discount:'Part Sale', cat:'fashion', city:'Dubai', locations:'Dubai Mall; Mall of Emirates; Dubai Airport', end_date:'2026-04-28', urgent:false},
+
+  {id:14, store:'R&B', store_ar:'آر آند بي', title:'AED 10, 20 & 30 Fashion Offers', title_ar:'عروض أزياء بـ 10 و20 و30 درهم',
+   subtitle:'Styles for men, women & kids from AED 10', subtitle_ar:'أزياء للرجال والنساء والأطفال من 10 دراهم',
+   description:'R&B offers great value styles for men, women and kids at AED 10, 20 and 30. Shop the catalog at Dubai Hills Mall, Al Ghurair and Deira City Center.',
+   description_ar:'آر آند بي يقدم أزياء بأسعار رائعة للرجال والنساء والأطفال بـ 10 و20 و30 درهم في مراكز التسوق.',
+   discount:'From AED 10', cat:'fashion', city:'Dubai', locations:'Dubai Hills Mall; Al Ghurair Center; Deira City Center; Online Store', end_date:'2026-06-01', urgent:false},
+
+  {id:15, store:'Lulu Hypermarket', store_ar:'لولو هايبرماركت', title:'AED 10 & AED 20 Grocery Savers', title_ar:'توفير على البقالة بـ 10 و20 درهم',
+   subtitle:'Daily essentials & groceries at great prices', subtitle_ar:'مستلزمات يومية وبقالة بأسعار مميزة',
+   description:'Budget-friendly grocery and household deals. Amazing discounts on daily essentials, groceries and kitchen items. Also available online for quick delivery.',
+   description_ar:'عروض بقالة ومستلزمات منزلية بأسعار مناسبة. خصومات مذهلة على المستلزمات اليومية وأدوات المطبخ.',
+   discount:'From AED 10', cat:'food', city:'All UAE', locations:'All Lulu Hypermarket Branches; Online Store', end_date:'2026-04-26', urgent:false},
+
+  {id:16, store:'Life Pharmacy', store_ar:'لايف فارماسي', title:'Pre-Ramadan Health & Beauty Sale', title_ar:'تخفيضات صحة وتجميل قبل رمضان',
+   subtitle:'Supplements, skincare & health essentials', subtitle_ar:'مكملات غذائية وعناية بالبشرة ومستلزمات صحية',
+   description:'Check out pre-Ramadan offers on supplements, skincare, cooking essentials and more at Life Pharmacy. Great deals on everyday health products.',
+   description_ar:'اطلع على عروض ما قبل رمضان على المكملات الغذائية وعناية البشرة والمستلزمات الأساسية في لايف فارماسي.',
+   discount:'Up to 30% OFF', cat:'health', city:'Dubai', locations:'Multiple Life Pharmacy Branches across Dubai', end_date:'2026-04-30', urgent:false},
+
+  {id:17, store:'Amazon UAE', store_ar:'أمازون الإمارات', title:'Lulu Online — Super Savers & Deals Zone', title_ar:'لولو أونلاين — عروض سوبر سيفرز',
+   subtitle:'Lulu catalog + Amazon delivery nationwide', subtitle_ar:'كتالوج لولو مع توصيل أمازون على مستوى الدولة',
+   description:'Shop Lulu online from Amazon. Great product catalog combined with Amazon\'s shopping experience. Check out Lulu Deals Zone and Super Savers.',
+   description_ar:'تسوق لولو أونلاين عبر أمازون. كتالوج منتجات رائع مع تجربة تسوق أمازون. تفقد منطقة العروض.',
+   discount:'Super Savers', cat:'food', city:'All UAE', locations:'Online Store — nationwide delivery', end_date:'2026-12-31', urgent:false},
+
+  {id:18, store:'Miracle Garden', store_ar:'حديقة المعجزة', title:'Free Entry with Emirates ID', title_ar:'دخول مجاني بالهوية الإماراتية',
+   subtitle:'World\'s largest flower garden — free for residents', subtitle_ar:'أكبر حديقة زهور في العالم — مجانية للمقيمين',
+   description:'Residents can enjoy complimentary entry to Dubai Miracle Garden by presenting their Emirates ID. Experience the world\'s largest flower garden.',
+   description_ar:'يمكن للمقيمين الاستمتاع بالدخول المجاني إلى حديقة دبي المعجزة بتقديم الهوية الإماراتية.',
+   discount:'FREE Entry', cat:'leisure', city:'Dubai', locations:'Dubailand, Miracle Garden, Dubai', end_date:'2026-03-31', urgent:false},
+
+  {id:19, store:'GMC', store_ar:'جي إم سي', title:'Exclusive Offers + 0% Finance', title_ar:'عروض حصرية + تمويل بدون فوائد',
+   subtitle:'Save up to AED 25,000 on Terrain & Yukon', subtitle_ar:'وفر حتى 25,000 درهم على تيرين ويوكون',
+   description:'Exclusive GMC offers with flexible finance options, 2-year service contract, and savings of up to AED 25,000 on selected models including Terrain and Yukon.',
+   description_ar:'عروض جي إم سي الحصرية مع خيارات تمويل مرنة وعقد خدمة لمدة عامين وتوفير يصل إلى 25,000 درهم.',
+   discount:'Up to AED 25K OFF', cat:'auto', city:'Dubai', locations:'Sheikh Zayed Road; 1st Industrial Area; Deira Al Ittihad Rd; Nad Al Hammar Rd', end_date:'2026-05-31', urgent:false},
+
+  {id:20, store:'Volvo', store_ar:'فولفو', title:'EX30 — 0% Down + 0% Finance 5Yrs', title_ar:'EX30 — بدون دفعة أولى + تمويل 5 سنوات',
+   subtitle:'Fully electric — zero down, zero interest', subtitle_ar:'كهربائي بالكامل — بدون دفعة أولى وبدون فوائد',
+   description:'Fully electric Volvo EX30: enjoy 0% down payment and 0% finance for 5 years. Drive into a cleaner future with zero compromise on style.',
+   description_ar:'فولفو EX30 الكهربائي الكامل: استمتع بدفعة أولى 0٪ وتمويل 0٪ لمدة 5 سنوات. قد نحو مستقبل أنظف.',
+   discount:'0% Finance', cat:'auto', city:'Dubai', locations:'Volvo Showroom Dubai', end_date:'2026-06-30', urgent:false},
+];
+
+const ANNS = [
+  '🔥 Carrefour Summer Splash — Up to 50% OFF pool & outdoor gear until 15 May',
+  '📱 Lulu Tech Deals Unlocked — Smartphones, TVs & appliances up to 45% off',
+  '👟 Call it Spring — Up to 70% OFF shoes & bags at Dubai malls',
+  '⚡ Noon Flash Sale — Up to 70% off electronics today only',
+  '🛍️ American Eagle — 30% to 75% off men & women fashion',
+  '💛 Pandora Part Sale — Up to 50% off jewellery & accessories',
+];
+
+const BANNER_ADS = [
+  {title:'Noon Super Sale',       subtitle:'Up to 70% off electronics — Today only!', cta_text:'Shop Now', cta_url:'#'},
+  {title:'Namshi Fashion Week',   subtitle:'New arrivals + up to 60% off selected styles', cta_text:'Explore', cta_url:'#'},
+  {title:'Groupon UAE Deals',     subtitle:'Spa, dining & activities from AED 49', cta_text:'See Deals', cta_url:'#'},
+];
+
+const HGRADS = [
+  'linear-gradient(135deg,#0A2B6E 0%,#1A58C0 100%)',
+  'linear-gradient(135deg,#1A5828 0%,#2EA050 100%)',
+  'linear-gradient(135deg,#8A1018 0%,#E03020 100%)',
+  'linear-gradient(135deg,#6A1870 0%,#C030B0 100%)',
+  'linear-gradient(135deg,#884010 0%,#D07020 100%)',
+];
+
+const CATS = [
+  {id:'all',        l:'All',           ico:'tag'},
+  {id:'food',       l:'Food & Drinks', ico:'utensils'},
+  {id:'fashion',    l:'Fashion',       ico:'shirt'},
+  {id:'health',     l:'Health',        ico:'heart'},
+  {id:'home',       l:'Home & Decor',  ico:'home'},
+  {id:'electronics',l:'Electronics',  ico:'smartphone'},
+  {id:'auto',       l:'Automotive',    ico:'car'},
+  {id:'leisure',    l:'Things To Do',  ico:'ticket'},
+  {id:'services',   l:'Services',      ico:'wrench'},
+];
+const FLTS = ['All','Hot Deals','Ending Soon','Highest Discount','Online Only','New Today'];
+const CAT_COLORS={food:'#FF6200',fashion:'#A820A0',health:'#E5001D',home:'#207838',electronics:'#1448B0',auto:'#484848',leisure:'#986000',services:'#187888',all:'#E5001D'};
+
+// Category sponsor strip data
+const CAT_ADS = [
+  {name:'Carrefour',       sub:'Super Deals',          grad:'linear-gradient(120deg,#1448B0,#2A70E0)',  ico:'shopping-cart'},
+  {name:'Noon',            sub:'Flash Sale Today',      grad:'linear-gradient(120deg,#8A1018,#E03020)',  ico:'zap'},
+  {name:'Namshi',          sub:'Fashion Week',          grad:'linear-gradient(120deg,#6A1870,#C030B0)',  ico:'shopping-bag'},
+  {name:'Lulu',            sub:'Tech Deals',            grad:'linear-gradient(120deg,#145010,#2A9040)',  ico:'monitor'},
+  {name:'Groupon UAE',     sub:'From AED 49',           grad:'linear-gradient(120deg,#884010,#D07020)',  ico:'ticket'},
+  {name:'Amazon UAE',      sub:'Super Savers',          grad:'linear-gradient(120deg,#1A5858,#28A090)',  ico:'package'},
+];
+
+// ── LANGUAGE SWITCH ──
+function setLang(l){
+  lang=l;
+  // toggle button styles
+  document.getElementById('lang-en').classList.toggle('on', l==='en');
+  document.getElementById('lang-ar').classList.toggle('on', l==='ar');
+  // RTL / LTR
+  document.getElementById('app').dir = l==='ar'?'rtl':'ltr';
+  // Update search placeholder
+  document.getElementById('srch').placeholder = t('searchPlaceholder');
+  // Re-render everything
+  buildCats(); buildFilters(); buildCityOpts(); buildCatAds();
+  renderHero(); renderDeals();
+  // Update nav labels
+  ['home','catalogs','nearme','trends','alerts'].forEach(p=>{
+    const el=document.querySelector(`#nv-${p} .nv-lbl`);
+    if(el) el.textContent=t(p);
+  });
+  // Update ticker
+  annIdx=0; showTick();
+}
+
+// ── INIT ──
+function init(){
+  buildCats(); buildFilters(); buildCityOpts(); buildCatAds();
+  renderHero(); renderDeals(); startTicker();
+  setTimeout(showPopup, 1400);
+}
+
+// ── TICKER ──
+function startTicker(){
+  setInterval(()=>{
+    annIdx=(annIdx+1)%ANNS.length;
+    showTick();
+  },4500);
+}
+function showTick(){
+  const el=document.getElementById('tick-txt');
+  el.className='ticker-text';void el.offsetWidth;el.className='ticker-text anim';
+  const arr=lang==='ar'?ANNS_AR:ANNS;
+  el.textContent=arr[annIdx%arr.length];
+}
+
+// ── POPUP ──
+function showPopup(){
+  document.getElementById('popup-bg').style.display='flex';
+}
+function closePopup(e){
+  if(!e||e.target===document.getElementById('popup-bg'))
+    document.getElementById('popup-bg').style.display='none';
+}
+
+// ── HERO ──
+function renderHero(){
+  const hot=DEALS.filter(d=>d.urgent).slice(0,5);
+  document.getElementById('hero-row').innerHTML=hot.map((d,i)=>`
+    <div class="h-card" onclick="openDetail(${d.id})">
+      <div class="h-bg" style="background:${HGRADS[i%HGRADS.length]}"></div>
+      <div class="h-ov"></div>
+      <div class="h-cnt">
+        <div class="h-eyebrow">${ico('store',9,'rgba(255,255,255,0.7)')} ${esc(lang==='ar'&&d.store_ar?d.store_ar:d.store)}</div>
+        <div class="h-title">${esc(lang==='ar'&&d.title_ar?d.title_ar:d.title)}</div>
+        <div class="h-subtitle">${esc(lang==='ar'&&d.subtitle_ar?d.subtitle_ar:(d.subtitle||d.description.slice(0,60)+'…'))}</div>
+        <div class="h-city">${ico('map-pin',10,'rgba(255,255,255,0.95)')} ${esc(d.city)}</div>
+      </div>
+      <div class="h-disc">
+        <div class="h-pct">${shortD(d.discount)}</div>
+        <div class="h-off">off</div>
+      </div>
+    </div>`).join('');
+}
+
+// ── CATEGORY ADS STRIP ──
+function buildCatAds(){
+  document.getElementById('cat-ads').innerHTML=CAT_ADS.map(a=>`
+    <div class="cat-ad">
+      <div class="cat-ad-bg" style="background:${a.grad}"></div>
+      <div class="cat-ad-inner">
+        <div class="cat-ad-ico">${ico(a.ico,15,'rgba(255,255,255,0.9)')}</div>
+        <div>
+          <div class="cat-ad-name">${esc(a.name)}</div>
+          <div class="cat-ad-sub">${esc(a.sub)}</div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// ── CATS ──
+function buildCats(){
+  document.getElementById('cats').innerHTML=CATS.map(c=>`
+    <div class="c-chip${c.id===cat?' on':''}" id="cat-${c.id}" onclick="setCat('${c.id}')">
+      <div class="c-ico">${ico(c.ico,22,'currentColor')}</div>
+      <div class="c-lbl">${tc(c.id)}</div>
+    </div>`).join('');
+}
+function setCat(id){
+  cat=id;
+  document.querySelectorAll('.c-chip').forEach(e=>e.classList.remove('on'));
+  document.getElementById('cat-'+id)?.classList.add('on');
+  renderDeals();
+}
+
+// ── FILTERS ──
+const FLTS_KEYS = ['All','Hot Deals','Ending Soon','Highest Discount','Online Only','New Today'];
+const FLTS_T = {
+  'All':'filtersAll','Hot Deals':'filtersHot','Ending Soon':'filtersEnding',
+  'Highest Discount':'filtersHighest','Online Only':'filtersOnline','New Today':'filtersNew'
+};
+function buildFilters(){
+  document.getElementById('flt-row').innerHTML=FLTS_KEYS.map(f=>`
+    <div class="f-pill${f===flt?' on':''}" id="flt-${f.replace(/ /g,'_')}" onclick="setFlt('${f}')">${t(FLTS_T[f])}</div>`).join('');
+}
+function setFlt(f){
+  flt=f;
+  document.querySelectorAll('.f-pill').forEach(e=>e.classList.remove('on'));
+  document.getElementById('flt-'+f.replace(/ /g,'_'))?.classList.add('on');
+  renderDeals();
+}
+
+// ── DEALS ──
+function renderDeals(){
+  const q=document.getElementById('srch').value.toLowerCase().trim();
+  const now=new Date();now.setHours(0,0,0,0);
+  let list=DEALS.filter(d=>{
+    const cOk=cat==='all'||d.cat===cat;
+    const cityOk=city==='All UAE'||d.city===city||d.city==='All UAE';
+    const qOk=!q||d.store.toLowerCase().includes(q)||d.title.toLowerCase().includes(q)||d.description.toLowerCase().includes(q);
+    let fOk=true;
+    if(flt==='Hot Deals') fOk=d.urgent;
+    if(flt==='Ending Soon'&&d.end_date){const diff=(new Date(d.end_date)-now)/86400000;fOk=diff>=0&&diff<=5;}
+    else if(flt==='Ending Soon') fOk=false;
+    if(flt==='Highest Discount'){const m=(d.discount||'').match(/\d+/g);fOk=m?parseInt(m[m.length-1])>=50:false;}
+    if(flt==='Online Only') fOk=d.locations.toLowerCase().includes('online');
+    if(flt==='New Today') fOk=d.urgent;
+    return cOk&&cityOk&&qOk&&fOk;
+  });
+
+  const lbl=cat==='all'?t('allDeals'):tc(cat);
+  document.getElementById('deals-lbl').textContent=lbl;
+  document.getElementById('deals-cnt').textContent=`${list.length} ${list.length!==1?t('deals'):t('deal')} · ${city}`;
+
+  if(!list.length){
+    document.getElementById('deals').innerHTML=`
+      <div class="empty">
+        <div class="empty-ico">${ico('search-x',28,'currentColor')}</div>
+        <div class="empty-t">${t('noDeals')}</div>
+        <div class="empty-s">${t('noDealsHint')}</div>
+      </div>`;
+    return;
+  }
+
+  let html='';
+  list.forEach((d,i)=>{
+    html+=dealCard(d,i);
+    if((i+1)%5===0&&BANNER_ADS.length) html+=bannerCard(BANNER_ADS[Math.floor(i/5)%BANNER_ADS.length]);
+  });
+  document.getElementById('deals').innerHTML=html;
+}
+
+function dealCard(d,i){
+  const color=CAT_COLORS[d.cat]||'#E5001D';
+  const catObj=CATS.find(c=>c.id===d.cat);
+  const locs=d.locations.split(';').map(l=>l.trim().split(',')[0].trim()).filter(Boolean).slice(0,2);
+  const dateStr=d.end_date?fmtDate(d.end_date):t('ongoing');
+  const storeName=lang==='ar'&&d.store_ar?d.store_ar:d.store;
+  const titleText=lang==='ar'&&d.title_ar?d.title_ar:d.title;
+  const descText=lang==='ar'&&d.description_ar?d.description_ar:d.description;
+  return `
+    <div class="d-card" style="animation-delay:${i*.035}s" onclick="openDetail(${d.id})">
+      ${d.urgent?`<div class="hot-tag">${ico('zap',9,'#fff')} ${t('hot')}</div>`:''}
+      <div class="d-inner">
+        <div class="d-bar" style="background:${color}"></div>
+        <div class="d-body">
+          <div class="d-top">
+            <div class="d-store">${esc(storeName)}</div>
+            <div class="d-badge">${esc(d.discount)}</div>
+          </div>
+          <div class="d-title">${esc(titleText)}</div>
+          <div class="d-desc">${esc(descText)}</div>
+          <div class="d-tags">
+            ${catObj?`<span class="tag t-cat">${ico(catObj.ico,10,'currentColor')} ${tc(catObj.id)}</span>`:''}
+            <span class="tag t-city">${ico('map-pin',10,'currentColor')} ${esc(d.city)}</span>
+            ${locs.map(l=>`<span class="tag t-loc">${ico('store',10,'currentColor')} ${esc(l)}</span>`).join('')}
+            <span class="tag t-date">${ico('calendar',10,'currentColor')} ${dateStr}</span>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function bannerCard(ad){
+  return `
+    <div class="ad-banner" onclick="${ad.cta_url&&ad.cta_url!=='#'?`window.open('${esc(ad.cta_url)}','_blank')`:''}">
+      <div class="ad-inner">
+        <div class="ad-bar"></div>
+        <div class="ad-body">
+          <div class="ad-sp">${ico('star',10,'currentColor')} ${t('sponsored')}</div>
+          <div class="ad-title">${esc(ad.title)}</div>
+          <div class="ad-sub">${esc(ad.subtitle)}</div>
+          <span class="ad-cta">${ico('external-link',11,'currentColor')} ${esc(ad.cta_text)}</span>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ── DETAIL ──
+function openDetail(id){
+  const d=DEALS.find(x=>x.id===id);if(!d)return;
+  const catObj=CATS.find(c=>c.id===d.cat);
+  const locs=d.locations.split(';').map(l=>l.trim()).filter(Boolean);
+  const storeName=lang==='ar'&&d.store_ar?d.store_ar:d.store;
+  const titleText=lang==='ar'&&d.title_ar?d.title_ar:d.title;
+  const descText=lang==='ar'&&d.description_ar?d.description_ar:d.description;
+  document.getElementById('det-body').innerHTML=`
+    <div class="det-eyebrow">${ico('store',11,'currentColor')} ${esc(storeName)}</div>
+    <div class="det-store">${esc(titleText)}</div>
+    <div class="det-disc">${ico('tag',13,'#fff')} ${esc(d.discount)}</div>
+    <div class="det-desc">${esc(descText)}</div>
+    <div class="det-div"></div>
+    ${locs.length?`<div class="det-sec"><div class="det-lbl">${ico('map-pin',12,'currentColor')} ${t('locations')}</div><div class="det-val">${locs.map(l=>'• '+esc(l)).join('<br>')}</div></div>`:''}
+    <div class="det-sec"><div class="det-lbl">${ico('calendar',12,'currentColor')} ${t('validUntil')}</div><div class="det-val" style="color:var(--grn);font-weight:600">${d.end_date?fmtDate(d.end_date):t('ongoing')}</div></div>
+    <div class="det-sec"><div class="det-lbl">${ico('map',12,'currentColor')} ${t('city')}</div><div class="det-val">${esc(d.city)}</div></div>
+    ${catObj?`<div class="det-sec"><div class="det-lbl">${ico(catObj.ico,12,'currentColor')} ${t('category')}</div><div class="det-val">${tc(catObj.id)}</div></div>`:''}
+  `;
+  document.getElementById('det-ov').style.display='flex';
+}
+function closeDetail(e){if(!e||e.target===document.getElementById('det-ov'))document.getElementById('det-ov').style.display='none';}
+
+// ── CITY ──
+function buildCityOpts(){
+  document.getElementById('city-opts').innerHTML=CITIES.map(c=>`
+    <div class="city-opt${c===city?' on':''}" id="co-${c.replace(/ /g,'_')}" onclick="setCity('${c}')">
+      ${ico('building',16,'currentColor')} <span>${esc(c)}</span>
+      ${c===city?`<div class="city-chk" style="margin-left:auto">${ico('check',12,'var(--dark)')}</div>`:''}
+    </div>`).join('');
+  // update sheet title
+  const st=document.querySelector('#city-ov .sheet-t');
+  if(st) st.childNodes[st.childNodes.length-1].textContent=' '+t('selectCity');
+}
+function openCity(){document.getElementById('city-ov').style.display='flex';}
+function closeCity(e){if(!e||e.target===document.getElementById('city-ov'))document.getElementById('city-ov').style.display='none';}
+function setCity(c){city=c;document.getElementById('city-lbl').textContent=c;buildCityOpts();closeCity();renderDeals();}
+
+// ── PAGE NAV ──
+const PAGES=['home','catalogs','nearme','trends','alerts'];
+function goPage(p){
+  PAGES.forEach(pg=>{
+    const el=document.getElementById('pg-'+pg);
+    if(el)el.style.display=pg===p?'block':'none';
+    document.getElementById('nv-'+pg)?.classList.toggle('on',pg===p);
+  });
+  if(p==='catalogs') renderCatalogs();
+  if(p==='trends')   renderTrends();
+  if(p==='alerts')   renderAlertTopics();
+  if(p==='nearme')   initNearMe();
+}
+
+// ── CATALOGS ──
+const STORES=[
+  {n:'Carrefour',       ico:'shopping-cart', cat:'Supermarket',      city:'All UAE'},
+  {n:'Lulu Hypermarket',ico:'shopping-cart', cat:'Supermarket',      city:'All UAE'},
+  {n:'Noon',            ico:'package',       cat:'Online Retail',    city:'All UAE'},
+  {n:'Sharaf DG',       ico:'monitor',       cat:'Electronics',      city:'All UAE'},
+  {n:'H&M',             ico:'shirt',         cat:'Fashion',          city:'Dubai'},
+  {n:'Boots Pharmacy',  ico:'heart-pulse',   cat:'Health & Beauty',  city:'All UAE'},
+  {n:'IKEA',            ico:'lamp',          cat:'Home & Decor',     city:'Dubai'},
+  {n:'Centrepoint',     ico:'shirt',         cat:'Fashion',          city:'All UAE'},
+  {n:'ACE Hardware',    ico:'wrench',        cat:'Home Improvement', city:'All UAE'},
+  {n:'Groupon UAE',     ico:'ticket',        cat:'Online Deals',     city:'All UAE'},
+  {n:'Amazon UAE',      ico:'package',       cat:'Online Retail',    city:'All UAE'},
+  {n:'Namshi',          ico:'shopping-bag',  cat:'Fashion',          city:'All UAE'},
+];
+function renderCatalogs(){
+  const el=document.getElementById('catalogs-list');
+  if(el.innerHTML)return;
+  el.innerHTML=STORES.map(s=>`
+    <div class="s-card">
+      <div class="s-ico">${ico(s.ico,22,'currentColor')}</div>
+      <div style="flex:1;min-width:0">
+        <div class="s-name">${esc(s.n)}</div>
+        <div class="s-cat">${esc(s.cat)} · ${esc(s.city)}</div>
+      </div>
+      <div class="s-arr">${ico('chevron-right',18,'currentColor')}</div>
+    </div>`).join('');
+}
+
+// ── TRENDS ──
+const TRENDS=[
+  {ico:'gift',       title:'Eid Season Sales',          sub:'The biggest shopping season is live now — deals across all categories',  cat:'All',         c:'#E5001D'},
+  {ico:'sun',        title:'Summer Collections 2026',   sub:'New arrivals from H&M, Zara, Centrepoint and more',                       cat:'Fashion',     c:'#A820A0'},
+  {ico:'smartphone', title:'Tech Deals Unlocked',       sub:'Smartphones, tablets & smart home at record lows at Lulu & Noon',         cat:'Electronics', c:'#1448B0'},
+  {ico:'utensils',   title:'Ramadan & Eid Grocery',     sub:'Carrefour and Lulu special grocery pricing for the holy month',           cat:'Food',        c:'#FF6200'},
+  {ico:'home',       title:'Summer Splash Outdoor',     sub:'Pools, floats, garden furniture at Carrefour — from AED 68.99',           cat:'Home',        c:'#207838'},
+  {ico:'heart',      title:'Health & Beauty Offers',    sub:'Bath & Body Works, Life Pharmacy and Boots deals trending now',           cat:'Health',      c:'#E5001D'},
+  {ico:'car',        title:'Automotive Deals',          sub:'GMC, Volvo & Toyota exclusive finance offers across UAE showrooms',       cat:'Auto',        c:'#484848'},
+  {ico:'users',      title:'Family Activities',         sub:'Miracle Garden free entry + theme park bundles this season',              cat:'Leisure',     c:'#986000'},
+];
+function renderTrends(){
+  const el=document.getElementById('trends-list');
+  if(el.innerHTML)return;
+  el.innerHTML=TRENDS.map(t=>`
+    <div class="tr-card">
+      <div class="tr-bar" style="background:linear-gradient(90deg,${t.c},${t.c}88)"></div>
+      <div class="tr-inner">
+        <div class="tr-ico" style="background:${t.c}18;color:${t.c}">${ico(t.ico,22,t.c)}</div>
+        <div style="flex:1;min-width:0">
+          <div class="tr-name">${t.title}</div>
+          <div class="tr-sub">${t.sub}</div>
+        </div>
+        <span class="tr-cat">${t.cat}</span>
+      </div>
+    </div>`).join('');
+}
+
+// ── ALERTS ──
+const ALERT_TOPICS=['Fashion Sales','Electronics','Food & Grocery','Pharmacy Deals','Eid Offers','Online Only','Dubai Malls','Abu Dhabi Deals','Hot Deals 50%+','New Arrivals'];
+function renderAlertTopics(){
+  const el=document.getElementById('alert-topics');
+  if(el.innerHTML)return;
+  el.innerHTML=ALERT_TOPICS.map(t=>`<span class="topic" onclick="this.classList.toggle('on')">${esc(t)}</span>`).join('');
+}
+function submitAlert(){
+  const email=document.getElementById('alert-email').value.trim();
+  if(!email||!email.includes('@')){toast("Please enter a valid email");return;}
+  document.getElementById('alert-email').value='';
+  toast("You're on the list!");
+}
+
+// ── HELPERS ──
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function fmtDate(d){return new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}
+function shortD(d){if(!d)return'—';const m=d.match(/\d+/g);return m?m[m.length-1]+'%':d.slice(0,5);}
+function toast(m){
+  const t=document.getElementById('toast');
+  t.innerHTML=`${ico('check-circle',14,'currentColor')} ${m}`;
+  t.classList.add('on');
+  setTimeout(()=>t.classList.remove('on'),2600);
+}
+
+
+// ══════════════════════════════════════════════════════
+// ── NEAR ME ──────────────────────────────────────────
+// ══════════════════════════════════════════════════════
+
+// Store locations with real UAE coordinates
+const STORE_LOCATIONS = [
+  // Dubai
+  {name:'Carrefour — Dubai Festival City', city:'Dubai', lat:25.2268, lng:55.3510, cat:'food',        deals:[1,6,7]},
+  {name:'Carrefour — Ibn Battuta Mall',    city:'Dubai', lat:25.0438, lng:55.1277, cat:'food',        deals:[1,6,7]},
+  {name:'Carrefour — Wafi Mall',           city:'Dubai', lat:25.2267, lng:55.3185, cat:'food',        deals:[6,7]},
+  {name:'Lulu — Al Barsha',                city:'Dubai', lat:25.1076, lng:55.1993, cat:'food',        deals:[2,15]},
+  {name:'Lulu — Al Qusais',                city:'Dubai', lat:25.2762, lng:55.3819, cat:'food',        deals:[2,15]},
+  {name:'Lulu — Silicon Oasis',            city:'Dubai', lat:25.1178, lng:55.3819, cat:'electronics', deals:[2,15]},
+  {name:'Bath & Body Works — Dubai Mall',  city:'Dubai', lat:25.1972, lng:55.2744, cat:'health',      deals:[5]},
+  {name:'Bath & Body Works — Mall of Emirates', city:'Dubai', lat:25.1186, lng:55.2003, cat:'health', deals:[5]},
+  {name:'Call it Spring — Dubai Mall',     city:'Dubai', lat:25.1972, lng:55.2744, cat:'fashion',     deals:[3]},
+  {name:'American Eagle — Mirdif City Center', city:'Dubai', lat:25.2135, lng:55.4148, cat:'fashion', deals:[8]},
+  {name:'Columbia — Mall of Emirates',     city:'Dubai', lat:25.1186, lng:55.2003, cat:'fashion',     deals:[9]},
+  {name:'Pandora — Souk Madinat',          city:'Dubai', lat:25.1314, lng:55.1878, cat:'fashion',     deals:[11]},
+  {name:'Pandora — Marina Mall',           city:'Dubai', lat:25.0779, lng:55.1338, cat:'fashion',     deals:[11]},
+  {name:'Sunglass Hut — Dubai Mall',       city:'Dubai', lat:25.1972, lng:55.2744, cat:'fashion',     deals:[13]},
+  {name:'R&B — Dubai Hills Mall',          city:'Dubai', lat:25.1024, lng:55.2353, cat:'fashion',     deals:[14]},
+  {name:'Life Pharmacy — Al Barsha',       city:'Dubai', lat:25.1100, lng:55.1950, cat:'health',      deals:[16]},
+  {name:'Miracle Garden',                  city:'Dubai', lat:25.0612, lng:55.2449, cat:'leisure',     deals:[18]},
+  {name:'GMC Showroom — Sheikh Zayed Rd',  city:'Dubai', lat:25.1850, lng:55.2620, cat:'auto',        deals:[19]},
+  {name:'Volvo Showroom Dubai',            city:'Dubai', lat:25.1790, lng:55.2580, cat:'auto',        deals:[20]},
+  // Abu Dhabi
+  {name:'Carrefour — Yas Mall',            city:'Abu Dhabi', lat:24.4902, lng:54.6089, cat:'food',   deals:[1]},
+  {name:'Lulu — Online/Abu Dhabi',         city:'Abu Dhabi', lat:24.4670, lng:54.3700, cat:'food',   deals:[15]},
+  // Sharjah
+  {name:'Carrefour — Sharjah City Centre', city:'Sharjah', lat:25.3395, lng:55.4002, cat:'food',     deals:[1]},
+  // Ajman
+  {name:'Lulu — Ajman',                    city:'Ajman',   lat:25.4050, lng:55.4350, cat:'food',     deals:[15]},
+];
+
+const CAT_COLORS_MAP = {
+  food:'#FF6200', fashion:'#A820A0', health:'#E5001D',
+  home:'#207838', electronics:'#1448B0', auto:'#484848',
+  leisure:'#986000', services:'#187888'
+};
+
+let nmMap = null, nmUserMarker = null, nmInitialized = false, nmLocated = false;
+
+function initNearMe(){
+  // Only init UI once; don't auto-request location
+  if(nmInitialized) return;
+  nmInitialized = true;
+}
+
+function locateMe(){
+  if(!navigator.geolocation){
+    nmSetState('error','Location Not Supported',
+      'Your browser does not support geolocation. Try opening in Chrome or Safari.');
+    return;
+  }
+  nmSetState('loading','Finding Your Location…',
+    'Please allow location access when your browser asks.');
+  const btn = document.getElementById('nm-btn');
+  if(btn){ btn.classList.add('loading'); btn.textContent='Locating…'; }
+
+  navigator.geolocation.getCurrentPosition(
+    pos => nmOnSuccess(pos.coords.latitude, pos.coords.longitude),
+    err => {
+      const msgs = {
+        1:'Location permission denied. Please enable it in your browser settings.',
+        2:'Unable to determine your position. Try again outdoors.',
+        3:'Location request timed out. Please try again.'
+      };
+      nmSetState('error','Could Not Find Location', msgs[err.code]||'Unknown error. Please try again.');
+      const b=document.getElementById('nm-btn');
+      if(b){b.classList.remove('loading');b.innerHTML=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg> Try Again`;}
+    },
+    { enableHighAccuracy:true, timeout:12000, maximumAge:30000 }
+  );
+}
+
+async function nmOnSuccess(lat, lng){
+  // Reverse geocode with Nominatim (free, no key)
+  let areaName = 'Your Location';
+  let detectedCity = 'Dubai';
+  try{
+    const r = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
+      { headers:{'Accept-Language':'en'} }
+    );
+    const data = await r.json();
+    const addr = data.address || {};
+    areaName = addr.suburb || addr.neighbourhood || addr.city_district || addr.city || 'Your Area';
+    const raw = (addr.city || addr.state || addr.county || '').toLowerCase();
+    if(raw.includes('abu dhabi'))      detectedCity='Abu Dhabi';
+    else if(raw.includes('sharjah'))   detectedCity='Sharjah';
+    else if(raw.includes('ajman'))     detectedCity='Ajman';
+    else if(raw.includes('dubai'))     detectedCity='Dubai';
+  } catch(e){ /* silent — use defaults */ }
+
+  // Hide status, show map section
+  document.getElementById('nm-status-card').style.display = 'none';
+  document.getElementById('nm-map-section').style.display = 'block';
+  document.getElementById('nm-loc-text').textContent = `${areaName}, ${detectedCity}`;
+
+  // Filter nearby locations
+  const nearby = STORE_LOCATIONS.filter(s =>
+    s.city === detectedCity || s.city === 'All UAE'
+  ).map(s => ({
+    ...s,
+    dist: haversine(lat, lng, s.lat, s.lng)
+  })).sort((a,b) => a.dist - b.dist);
+
+  // Build / update map
+  nmBuildMap(lat, lng, nearby);
+
+  // Render deals
+  nmRenderDeals(nearby, detectedCity);
+  document.getElementById('nm-deals-title').textContent =
+    `Active Deals in ${detectedCity} (${nearby.length} stores)`;
+
+  nmLocated = true;
+}
+
+function nmBuildMap(lat, lng, stores){
+  if(!nmMap){
+    nmMap = L.map('map', { zoomControl:false, attributionControl:true })
+              .setView([lat, lng], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom:18,
+      attribution:'© <a href="https://openstreetmap.org">OpenStreetMap</a>'
+    }).addTo(nmMap);
+    L.control.zoom({ position:'bottomright' }).addTo(nmMap);
+  } else {
+    nmMap.setView([lat, lng], 13);
+    nmMap.eachLayer(l=>{ if(l instanceof L.Marker) nmMap.removeLayer(l); });
+  }
+
+  // User marker
+  const userIcon = L.divIcon({
+    html:`<div style="width:16px;height:16px;background:#1448B0;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35)"></div>`,
+    className:'', iconSize:[16,16], iconAnchor:[8,8]
+  });
+  nmUserMarker = L.marker([lat,lng], {icon:userIcon})
+    .addTo(nmMap)
+    .bindPopup('<strong>You are here</strong>');
+
+  // Store markers
+  stores.slice(0,20).forEach(s=>{
+    const col = CAT_COLORS_MAP[s.cat] || '#E5001D';
+    const storeIcon = L.divIcon({
+      html:`<div style="width:28px;height:28px;background:${col};border-radius:50% 50% 50% 4px;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 2px 7px rgba(0,0,0,.28);display:flex;align-items:center;justify-content:center"><span style="transform:rotate(45deg);font-size:12px;line-height:1">🏷</span></div>`,
+      className:'', iconSize:[28,28], iconAnchor:[14,28], popupAnchor:[0,-28]
+    });
+    const dealNames = s.deals.map(id=>{
+      const d=DEALS.find(x=>x.id===id);
+      return d?`<div style="font-size:12px;margin-top:4px">• ${d.discount} — ${d.title.slice(0,30)}…</div>`:'';
+    }).join('');
+    L.marker([s.lat,s.lng], {icon:storeIcon})
+     .addTo(nmMap)
+     .bindPopup(`<strong style="font-size:13px">${s.name}</strong>${dealNames}`);
+  });
+
+  // Fit bounds to show all markers
+  if(stores.length){
+    const bounds = L.latLngBounds([[lat,lng], ...stores.slice(0,15).map(s=>[s.lat,s.lng])]);
+    nmMap.fitBounds(bounds, {padding:[20,20], maxZoom:14});
+  }
+  setTimeout(()=>nmMap.invalidateSize(), 200);
+}
+
+function nmRenderDeals(stores, detectedCity){
+  const seenDeals = new Set();
+  const dealItems = [];
+
+  stores.forEach(s => {
+    s.deals.forEach(id => {
+      if(seenDeals.has(id)) return;
+      seenDeals.add(id);
+      const d = DEALS.find(x=>x.id===id);
+      if(d) dealItems.push({ deal:d, store:s });
+    });
+  });
+
+  if(!dealItems.length){
+    document.getElementById('nm-deals-list').innerHTML =
+      `<div style="text-align:center;padding:24px;color:var(--g6);font-size:13px">No active deals found near ${detectedCity} right now.</div>`;
+    return;
+  }
+
+  const catObj = id => CATS.find(c=>c.id===id);
+  document.getElementById('nm-deals-list').innerHTML = dealItems.map(({deal:d, store:s})=>{
+    const col = CAT_COLORS_MAP[d.cat]||'#E5001D';
+    const distTxt = s.dist < 1
+      ? `${Math.round(s.dist*1000)} m`
+      : `${s.dist.toFixed(1)} km`;
+    return `
+      <div class="nm-deal-card" onclick="openDetail(${d.id})">
+        <div class="nm-deal-ico" style="background:${col}18;color:${col}">
+          ${ico((catObj(d.cat)||{ico:'tag'}).ico,20,col)}
+        </div>
+        <div style="flex:1;min-width:0">
+          <div class="nm-deal-store">${esc(d.store)}</div>
+          <div class="nm-deal-title">${esc(s.name.split('—')[1]?.trim()||s.name)}</div>
+          <div class="nm-deal-badge">${ico('tag',10,'#fff')} ${esc(d.discount)}</div>
+        </div>
+        <div class="nm-deal-dist">
+          ${ico('map-pin',11,'currentColor')} ${distTxt}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function nmSetState(type, title, sub){
+  const ico_map = {
+    idle:    `<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>`,
+    loading: `<circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>`,
+    found:   `<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>`,
+    error:   `<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>`,
+  };
+  document.getElementById('nm-ico').className = `nm-status-ico ${type}`;
+  document.getElementById('nm-ico').innerHTML = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ico_map[type]||ico_map.idle}</svg>`;
+  document.getElementById('nm-title').textContent = title;
+  document.getElementById('nm-sub').textContent = sub;
+}
+
+function haversine(lat1,lon1,lat2,lon2){
+  const R=6371, dLat=(lat2-lat1)*Math.PI/180, dLon=(lon2-lon1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+init();
+</script>
+</body>
+</html>
